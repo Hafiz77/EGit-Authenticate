@@ -1,0 +1,179 @@
+package com.maven.quickTest.Test2;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Scanner;
+
+import org.eclipse.egit.github.core.*;
+import org.eclipse.egit.github.core.client.GitHubClient;
+import org.eclipse.egit.github.core.service.CommitService;
+import org.eclipse.egit.github.core.service.GistService;
+import org.eclipse.egit.github.core.service.OAuthService;
+import org.eclipse.egit.github.core.service.RepositoryService;
+
+public class App 
+{
+    public static void main( String[] args )
+    {
+    	
+    	
+    	 Scanner in = new Scanner(System.in);
+    	 String arr[] = null;
+    	 //GitHubClient client = null;
+    	 boolean authorized=false;
+    	 String username=null;
+    	 String pass=null;
+    	
+    	 System.out.print("Enter cmd (github username password) :");
+    	 String cmd=in.nextLine();
+    	 
+    	 arr=cmd.split(" ");
+    	 
+    	
+       if(cmd.startsWith("github") && arr.length==3)
+       {
+    	   username=arr[1];
+    	   pass=arr[2];
+    	 //  client = new GitHubClient();
+           try {
+           		OAuthService oauthService = new OAuthService();
+
+               oauthService.getClient().setCredentials(arr[1], arr[2]);
+               
+               Authorization auth = new Authorization();
+               auth.setNote(Math.random() + "");
+             
+               auth = oauthService.createAuthorization(auth);
+               
+               authorized = true;
+           	System.out.println("Authentication successful");
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Some problem occured");
+				authorized = false;
+			}
+    	   
+    	   
+    	   if (authorized) {
+    		   while(true)
+    		   {
+    			   System.out.print("Enter cmd (githubrepo or githubrepo repository_name or githubrepo repository_name messages or githubgist gist-name input-text ): ");
+    			   cmd=in.nextLine();
+    			   if(cmd.startsWith("githubrepo"))
+    			   {
+    				   arr=cmd.split(" ");
+    				   if(arr.length==1)
+    				   {
+    					   RepositoryService service = new RepositoryService();
+    					   
+    					   System.out.println("All Repositories : ");
+    					   System.out.println("---------------------");
+    					   try {
+    						if(service.getRepositories(username).size()==0)
+    							System.out.println("There are no Repositories");
+    						else
+    						{
+    							for (Repository repo : service.getRepositories(username))
+ 							   	{
+    								System.out.println(repo.getName());
+ 							    }
+    						}
+    							 
+							
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+    					   
+    				   }
+    				   if(arr.length==2)
+    				   {
+    					   RepositoryService service = new RepositoryService();
+    					   try {
+    						   System.out.println("All user of repository name : "+arr[1]);
+    						   System.out.println("----------------------------------------");
+							for (Repository repo : service.getRepositories(username))
+							   {
+							     if (arr[1].equals(repo.getName())) {
+							    	 if(service.getForks(repo).size()==0)
+							    		 System.out.println("There are no User this Repositories");
+							    	 else{
+							    		 for (Repository repo2 : service.getForks(repo)) {
+								    		 System.out.println(repo2.getOwner().getLogin());
+								    		 
+								    	 }
+							    	 }
+							     }
+							     
+							   }
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+    				   }
+    				   if(arr.length==3)
+    				   {
+    					   System.out.println("All Commit of repository name : "+arr[1]);
+						   System.out.println("----------------------------------------");
+    					   RepositoryService service = new RepositoryService();
+    					   try {
+							for (Repository repo : service.getRepositories(username))
+							   {
+							     if (arr[1].equals(repo.getName())) {
+							    	 CommitService c = new CommitService(service.getClient());
+							    	 if(c.getCommits(repo).size()==0)
+							    		 System.out.println("There are no commit of this repositories");
+							    	 for (RepositoryCommit com : c.getCommits(repo)) {
+										System.out.println(com.getCommit().getMessage());
+									}
+							    	 
+							     }
+							     
+							   }
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+    				   }
+    			   }
+    			   else if(cmd.startsWith("githubgist")) {
+    				   arr=cmd.split(" ");
+    				   GistFile file = new GistFile();
+    				   file.setContent(arr[2]);
+    				   Gist gist = new Gist();
+    				   gist.setDescription("Prints a string to standard out");
+    				   gist.setFiles(Collections.singletonMap(arr[1], file));
+    				   GistService service = new GistService();
+    				   service.getClient().setCredentials(username,pass);
+    				   try {
+						gist = service.createGist(gist);
+						System.out.println(gist.getCreatedAt());
+						System.out.println("Success.");
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+    			   }
+    			   else
+    			   {
+    				   System.out.println("Invalid Repository Operation Command");
+    				   in.close();
+    				   break;
+    			   }
+    		   }
+    		   
+    		   
+    	   }
+    	   else {
+    		   System.out.println("Unothorized...");
+    		   
+    	   }
+    	   
+       }
+       else {
+    	   System.out.println("Invalid Cmd for Authentication");
+       }
+        
+    }
+}
